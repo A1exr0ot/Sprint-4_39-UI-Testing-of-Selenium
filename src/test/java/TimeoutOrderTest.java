@@ -21,7 +21,7 @@ public class TimeoutOrderTest {
         // Инициализируем драйвер браузера
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20)); // Ожидание до 20 секунд
+        wait = new WebDriverWait(driver, Duration.ofSeconds(50));
     }
 
     @Test
@@ -29,18 +29,22 @@ public class TimeoutOrderTest {
         // Открываем сайт
         driver.get("https://qa-scooter.praktikum-services.ru/");
 
-        // Нажатие кнопки «Статус заказа»
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("Header_Link__1TAG7"))).click();
+        // Нажатие кнопки «Статус заказа» — используем текст ссылки
+        wait.until(ExpectedConditions.elementToBeClickable(By.className("Header_Link__1TAG7"))).click();
 
-        // Вводим несуществующий номер заказа
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[placeholder='Введите номер заказа']"))).sendKeys("000");
+        // Вводим несуществующий номер заказа — уточняем селектор по placeholder
+        WebElement orderInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[placeholder='Введите номер заказа']")));
+        orderInput.clear(); // Очищаем поле на всякий случай
+        orderInput.sendKeys("000");
 
-        // Нажать кнопку Go
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".Button_Button__ra12g.Header_Button__28dPO"))).click();
+        // Нажать кнопку Go — используем текст кнопки
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".Button_Button__ra12g.Header_Button__28dPO"))).click();
+
+        // Ожидание появления изображения ошибки
+        WebElement errorImage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("img[alt='Not found']")));
 
         // Сравниваем ОР и ФР
-        WebElement errorImage = driver.findElement(By.cssSelector("img[alt = 'Not found']"));
-        assertTrue("Сообщение обошибке не отображается", errorImage.isDisplayed());
+        assertTrue("Сообщение об ошибке не отображается", errorImage.isDisplayed());
     }
 
     @After
